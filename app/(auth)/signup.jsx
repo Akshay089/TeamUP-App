@@ -1,50 +1,50 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { Formik } from 'formik';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import wbimage2 from '../../assets/images/wbimage2.png';
-// import app from "../../config/firebaseConfig"; // adjust the path as needed
-// import { auth } from "../../config/firebaseConfig"; // use this!
+import { auth, db } from "../../config/firebaseConfig";
 import validationSchema from '../../utils/authSchema';
-import { app } from './../../config/firebaseConfig';
-
 
 export default function signup() {
   const router=useRouter();
-  const db = getFirestore(app); // link Firestore to the app
-  // const auth = getAuth(app);
-
-
+  
 const handleSignUp = async (values) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth, //  use pre-initialized auth
-      values.email,
-      values.password
-    );
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
 
-    const user = userCredential.user;
+      const user = userCredential.user;
 
-    await setDoc(doc(db, "users", user.uid), {
-      email: values.email,
-      createdAt: new Date(),
-    });
+      await setDoc(doc(db, "users", user.uid), {
+        email: values.email,
+        createdAt: new Date(),
+      });
 
-    console.log("Signup successful:", user.email);
+      await AsyncStorage.setItem("userEmail", values.email);
+      console.log("Signup successful:", user.email);
 
-    await AsyncStorage.setItem("userEmail", values.email);
-    await AsyncStorage.setItem("isGuest", "false");
-
-    router.push("/home");
-  } catch (error) {
-    console.log("SignUp error", error);
-  }
-
-};
-
+      router.push("/home");
+    } catch (error) {
+      console.log("SignUp error", error);
+      let message = "An unexpected error occurred. Please try again later.";
+      if (error.code === "auth/email-already-in-use") {
+        message = "This email address is already in use. Please use a different email.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "The email address is invalid. Please enter a valid email.";
+      } else if (error.code === "auth/weak-password") {
+        message = "The password is too weak. Please use a stronger password.";
+      }
+      Alert.alert("Signup Failed!", message, [{ text: "OK" }]);
+    }
+  };
+ 
   return (
     <SafeAreaView className="bg-white">
       <ScrollView contentContainerStyle={{height:"100%"}} >
@@ -109,7 +109,7 @@ const handleSignUp = async (values) => {
                                 </Text>
                           </TouchableOpacity>
                        <Image source={wbimage2} className="w-screen h-80 mt-30 my-20 self-center"/>
-                   
+  
                     </View>
                   )}
                  
