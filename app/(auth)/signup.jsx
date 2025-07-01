@@ -23,6 +23,7 @@ const handleSignUp = async (values) => {
       const user = userCredential.user;
 
       await setDoc(doc(db, "users", user.uid), {
+        fullName: values.fullName,
         email: values.email,
         createdAt: new Date(),
       });
@@ -51,22 +52,36 @@ const handleSignUp = async (values) => {
       <ScrollView contentContainerStyle={{height:"100%"}} >
         <View className="justify-center items-center">
           
-          <Text className="pt-10 text-4xl font-bold text-center text-[#239B2D] align-text-top ">
+          <Text className="pt-10 pb-1 text-4xl font-bold text-center text-[#239B2D] align-text-top ">
             Sign Up
           </Text> 
            
           <View className="w-5/6">
               <Formik 
-                initialValues={{ email: '', password: '' }}
+                initialValues={{ fullName: '', email: '', password: '' }}
                 validationSchema={validationSchema}
                 onSubmit={handleSignUp}
               >
                   {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
                     // This is email input box
                     <View className="w-full ">
-                      <Text className="text-[#239B2D] my-2 text-xl font-semibold mt-20 ">Email</Text>
+                      <Text className="text-[#239B2D] my-2 pt-10 text-xl font-semibold mt-25">Full Name</Text>
                       <TextInput
-                        className=" h-18 border-green-500 border-2  text-black text-lg text-bold rounded px-6"
+                        className="h-18 border-green-500 border-2 text-black text-lg rounded px-6"
+                        placeholder="First Last Name"
+                        onChangeText={handleChange("fullName")}
+                        value={values.fullName}
+                        onBlur={handleBlur("fullName")}
+                      />
+
+                      {touched.fullName && errors.fullName && (
+                        <Text className="text-red-500 text-xs mb-2">
+                          {errors.fullName}
+                        </Text>
+                      )}
+                      <Text className="text-[#239B2D] my-1 text-xl font-semibold mt-15 ">Email</Text>
+                      <TextInput
+                        className=" h-18 border-green-500 border-2  text-black text-lg  rounded px-6"
                         placeholder="Enter email"
                         keyboardType="email-address"
                         onChangeText={handleChange("email")}
@@ -82,7 +97,7 @@ const handleSignUp = async (values) => {
 
                       <Text className="text-[#239B2D] my-1 text-xl font-semibold mt-15 ">Password</Text>
                       <TextInput
-                        className=" h-18 border-2 border-green-500 text-black text-lg text-bold rounded px-6"
+                        className=" h-18 border-2 border-green-500 text-black text-lg rounded px-6"
                         secureTextEntry
                         placeholder="Enter password"
                         onChangeText={handleChange("password")}
@@ -109,7 +124,7 @@ const handleSignUp = async (values) => {
                                     Sign in
                                 </Text>
                           </TouchableOpacity>
-                       <Image source={wbimage2} className="w-screen h-80 mt-30 my-20 self-center"/>
+                       <Image source={wbimage2} className="w-screen h-80 mt-10 my-15 self-center"/>
   
                     </View>
                   )}
