@@ -62,6 +62,7 @@ export default function Turf(){
    const [selectedNumber, setSelectedNumber] = useState(1);
    const [selectedSlot, setSelectedSlot] = useState(null);
 
+
   const handleNextImage=()=>{
      const carouselLength=carouselData[0]?.images.length;
      if(currentIndex < carouselLength-1){
@@ -289,6 +290,10 @@ export default function Turf(){
       </View>
       <View>
         <FindSlot 
+          name={turfData?.name}
+          location={turfData?.location}
+          price={turfData?.price}
+          turf={turf}
           date={date}
           selectedNumber={selectedNumber}
           slots={slotsData} 
@@ -297,7 +302,7 @@ export default function Turf(){
         />
     
       </View>
-
+          
     </SafeAreaView>
   );
 }

@@ -15,6 +15,7 @@ export default function Home() {
   // },[])
   const router=useRouter();
   const [turfs,setTurfs]=useState([]);
+  
   const renderItem = ({item}) => (
     <TouchableOpacity onPress={()=>router.push(`/turf/${item.name}`)}>
       <Image
@@ -59,15 +60,11 @@ export default function Home() {
         
     
       </View>
-      
-    
       {
         turfs.length > 0 ?(
           <FlatList data={turfs} renderItem={renderItem} showsVerticalScrollIndicator={false}   scrollEnabled={true} contentContainerStyle={{padding:8}} />) : (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 200 }}>
           <ActivityIndicator animating size="large" color="#239B2D" className="mt-96 pt-96 justify-items-center " />
         </View>)
-          
-      
       }
     </SafeAreaView>
   );

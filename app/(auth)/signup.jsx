@@ -28,6 +28,7 @@ const handleSignUp = async (values) => {
       });
 
       await AsyncStorage.setItem("userEmail", values.email);
+      await AsyncStorage.setItem("isGuest", "false");
       console.log("Signup successful:", user.email);
 
       router.push("/home");
