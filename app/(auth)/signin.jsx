@@ -24,14 +24,15 @@ export default function signin() {
 
       const userDoc=await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
-        console.log("User data:", userDoc.data());
         // Store user email in AsyncStorage 
         await AsyncStorage.setItem("userEmail", values.email);
         await AsyncStorage.setItem("isGuest", "false");
+        console.log("User data found:", user.uid);
         router.push("/home");
       } else {
-        Alert.alert("User not found", "No user data found for this email.");
-      } 
+        
+        alert("User not found", "No user data found for this email.");
+      }
       console.log("SignIn successful:", user.email);
 
     } catch (error) {
@@ -129,4 +130,3 @@ export default function signin() {
     </SafeAreaView>
   );
 }
-
