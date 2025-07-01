@@ -162,13 +162,6 @@ export default function FindSlot({name,location,price,turf,date,selectedNumber,s
                           {errors.phoneNumber}
                         </Text>
                       )}
-
-                      {/* <TouchableOpacity
-                          className="bg-[#239B2D] rounded-xl py-3 mt-4"
-                          onPress={()=>router.push("/(auth)/signup")}
-                        >
-                            <Text className="text-white text-center text-lg font-semibold">Signup</Text>
-                      </TouchableOpacity> */}
                       
                           <TouchableOpacity onPress={handleSubmit} className="flex flex-row items-center justify-center mt-4"> 
                                 <Text className="text-base font-semibold underline text-[#239B2D]  p-1">
