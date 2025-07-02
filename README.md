@@ -41,10 +41,10 @@ Explore the handcrafted UI/UX design on Figma:
 ---
 ## 🛠 Installation & Setup
 
-# Navigate into the project
+# Navigate into the project directory
 cd TeamUP-App
 
-# Install dependencies
+# Install all required dependencies
 npm install
 
 # Start the development server
@@ -52,9 +52,9 @@ npx expo start
 ---
 ## 🌟 Credits
 
-- *Designed & Developed* by *[Akshay Kale]*
-- *UI/UX Design* handcrafted in *[Figma](https://n9.cl/twtxnz)*
-- *Built From Scratch* using:
+- 🔧 *Designed & Developed* by **[Akshay Kale]**
+- 🎨*UI/UX Design* handcrafted in *[Figma](https://n9.cl/twtxnz)*
+- 📲 *Built From Scratch* using:
   - *React Native* (Frontend)
   - *Firebase* (Authentication, Firestore, Storage)
   - *NativeWind* (Tailwind for React Native)
