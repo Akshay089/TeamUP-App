@@ -7,7 +7,7 @@
 ---
 ## 🔗 Figma Design
 
-Check out our official UI/UX design on Figma:  
+Explore the handcrafted UI/UX design on Figma:
 🎨 [Figma Preview (TeamUP)](https://n9.cl/twtxnz)
 
 ---
@@ -39,9 +39,9 @@ Check out our official UI/UX design on Figma:
 |----------------|------|--------------|----------|
 | <img src="./assets/images/First.png" width="200"/> | <img src="./assets/images/Home.png" width="200"/> | <img src="./assets/images/BookSlot.png" width="200"/> | <img src="./assets/images/Bookings.png" width="200"/> |
 ---
+## 🛠️ Installation & Setup
 
-## 🛠 Installation & Setup
-
+```bash
 # Clone the repo
 git clone https://github.com/yourusername/TeamUP-App.git
 
@@ -53,9 +53,7 @@ npm install
 
 # Start the development server
 npx expo start
-
 ---
-
 ## 🌟 Credits
 
 - *Designed & Developed* by *[Akshay Kale]*
@@ -65,3 +63,6 @@ npx expo start
   - *Firebase* (Authentication, Firestore, Storage)
   - *NativeWind* (Tailwind for React Native)
   - *Expo* (Development & APK Build)
+---
+⭐ Star this repo if you like the project!
+💬 Feel free to contribute or raise an issue.
