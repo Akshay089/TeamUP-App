@@ -39,11 +39,7 @@ Explore the handcrafted UI/UX design on Figma:
 |----------------|------|--------------|----------|
 | <img src="./assets/images/First.png" width="200"/> | <img src="./assets/images/Home.png" width="200"/> | <img src="./assets/images/BookSlot.png" width="200"/> | <img src="./assets/images/Bookings.png" width="200"/> |
 ---
-## 🛠️ Installation & Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/yourusername/TeamUP-App.git
+## 🛠 Installation & Setup
 
 # Navigate into the project
 cd TeamUP-App
