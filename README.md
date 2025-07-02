@@ -49,6 +49,7 @@ Explore the handcrafted UI/UX design on Figma:
 
 **Start the development server :**
 *npx expo start*
+
 ---
 ## 🌟 Credits
 
