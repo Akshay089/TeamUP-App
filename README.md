@@ -54,9 +54,9 @@ npm install
 
 # Start the development server
 npx expo start
+---
 
-## ✨ Credits
-
+## ✨ **Credits**
 🔧 **Designed & Developed** by [Akshay Kale]
 🎨 **UI/UX Design** handcrafted in [Figma](https://n9.cl/twtxnz)
 📲 **Built From Scratch** using:
