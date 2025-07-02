@@ -42,13 +42,13 @@ Explore the handcrafted UI/UX design on Figma:
 ## 🛠 Installation & Setup
 
 **Navigate into the project directory**
-cd TeamUP-App
+*cd TeamUP-App*
 
 **Install all required dependencies**
-npm install
+*npm install*
 
 **Start the development server**
-npx expo start
+*npx expo start*
 ---
 ## 🌟 Credits
 
