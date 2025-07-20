@@ -24,7 +24,14 @@ export default function Bookings() {
     try {
       const q = query(collection(db, "bookings"), where("email", "==", email));
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const now = new Date(); // ✅ Get the current date & time
+
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(item => {
+        if (!item.date) return false; // Skip if no date
+        const bookingDate = new Date(item.date); // Convert date string to JS Date object
+        return bookingDate > now; // ✅ Keep only future bookings
+      });
       setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
