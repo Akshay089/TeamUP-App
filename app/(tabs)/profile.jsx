@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { signOut } from "firebase/auth";
@@ -14,52 +15,45 @@ export default function Profile() {
       const email = await AsyncStorage.getItem("userEmail");
       setUserEmail(email);
     };
-
     fetchUserEmail();
   }, []);
 
-
   const handleLogout = async () => {
-    try{
-        await signOut(auth);
-        await AsyncStorage.removeItem("userEmail");
-        setUserEmail(null);
-        Alert.alert("You have been logged out successfully.");
-        router.push("/(auth)/signin");
+    try {
+      await signOut(auth);
+      await AsyncStorage.removeItem("userEmail");
+      setUserEmail(null);
+      Alert.alert("You have been logged out successfully.");
+      router.push("/(auth)/signin");
     } catch (error) {
-        console.error("Error signing out:", error);
+      console.error("Error signing out:", error);
     }
   };
 
-
-  const handleSignup = async () => {
+  const handleSignup = () => {
     router.push("/(auth)/signup");
   };
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-black text-xl font-bold">Welcome to your profile!</Text>
-      {
-          userEmail?(
-          <>
-          <Text className="text-black text-lg mb-6">{userEmail}</Text>
-          <TouchableOpacity onPress={handleLogout} className="p-2 my-2 bg-white rounded-lg border-white">
-              <Text className="text-xl font-semibold text-center text-green-600">
-                  Logout
-              </Text>
-          </TouchableOpacity>
-           </>
-          ):(
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      <View className="w-full bg-[#f0fdf4] rounded-xl p-6 items-center shadow-md">
+        <Ionicons name="person-circle-outline" size={80} color="#239B2D" />
+        <Text className="text-2xl font-bold text-black mt-4">Welcome to your profile!</Text>
+        {
+          userEmail ? (
             <>
-          <TouchableOpacity onPress={handleSignup} className="p-2 my-2 bg-white rounded-lg border-white">
-              <Text className="text-xl font-semibold text-center text-green-600">
-                  Sign up
-              </Text>
-          </TouchableOpacity>
-          </>)}
+              <Text className="text-base text-gray-700 mt-2 mb-6">{userEmail}</Text>
+              <TouchableOpacity onPress={handleLogout} className="bg-green-600 px-6 py-2 rounded-full">
+                <Text className="text-white font-semibold text-base">Logout</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity onPress={handleSignup} className="bg-green-600 px-6 py-2 rounded-full mt-6">
+              <Text className="text-white font-semibold text-base">Sign Up</Text>
+            </TouchableOpacity>
+          )
+        }
+      </View>
     </View>
   );
 }
-//<> and </> are used to wrap multiple elements without adding extra nodes to the DOM...such as <View> or <Text>.
-//This is called a Fragment — specifically, the short syntax for <React.Fragment></React.Fragment>.
-//When you need to return multiple JSX elements without adding extra nesting or layout.

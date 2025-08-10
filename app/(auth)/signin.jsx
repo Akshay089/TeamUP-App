@@ -7,10 +7,15 @@ import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } fro
 import { SafeAreaView } from "react-native-safe-area-context";
 import wbimage2 from '../../assets/images/wbimage2.png';
 import { auth, db } from "../../config/firebaseConfig";
+import { useAuthStore } from '../../store/authStore';
 import validationSchema from '../../utils/authSchema';
+
 
 export default function signin() {
   const router=useRouter();
+
+  const setUser = useAuthStore((state) => state.setUser);
+  const setIsGuest = useAuthStore((state) => state.setIsGuest);
 
   const handleSignIn = async (values) => {
     try {
@@ -21,10 +26,19 @@ export default function signin() {
       );
 
       const user = userCredential.user;
-
       const userDoc=await getDoc(doc(db, "users", user.uid));
+      
       if (userDoc.exists()) {
         // Store user email in AsyncStorage 
+      // ✅ Store in Zustand global state
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          fullName: userDoc.data().fullName || "Player"
+        };
+        setUser(userData);
+        setIsGuest(false);
+        
         await AsyncStorage.setItem("userEmail", values.email);
         await AsyncStorage.setItem("isGuest", "false");
         console.log("User data found:", user.uid);
