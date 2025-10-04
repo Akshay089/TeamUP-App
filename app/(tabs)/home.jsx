@@ -93,7 +93,7 @@ export default function Home() {
 
       </View>
      {/* NearbyTurfs fixed height container */}
-     <ScrollView>
+<ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}>
 
       <View style={{ height: 260,marginTop:9,backgroundColor:'#FFFFFF' }}>
         <View style={{marginTop:1 ,flexDirection:'row'}}>
