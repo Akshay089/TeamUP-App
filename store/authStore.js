@@ -1,7 +1,7 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export const useAuthStore = create((set) => ({
-  user: null, // { uid, email, fullName, ... }
+  user: null,
   isGuest: false,
 
   setUser: (user) => set({ user }),

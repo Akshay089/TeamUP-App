@@ -1,5 +1,5 @@
 // components/ContinuousCarousel.jsx
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
     Dimensions,
     Image,
@@ -22,31 +22,39 @@ const CARD_WIDTH = Math.round(width * 0.78);
 const CARD_SPACING = 14;
 
 export default function ContinuousCarousel({ turfs = [], onCardPress }) {
-  if (turfs.length === 0) {
-    return <Text style={{ padding: 20, textAlign: 'center' }}>No turfs found</Text>;
-  }
-
-  // Duplicate turfs for infinite scroll effect
-  const data = [...turfs, ...turfs];
-
-  const totalCardSetWidth = (CARD_WIDTH + CARD_SPACING) * turfs.length;
+  const totalCardSetWidth = useMemo(
+    () => (CARD_WIDTH + CARD_SPACING) * turfs.length,
+    [turfs.length]
+  );
 
   const translateX = useSharedValue(0);
 
   useEffect(() => {
+    if (turfs.length === 0) {
+      cancelAnimation(translateX);
+      translateX.value = 0;
+      return undefined;
+    }
     translateX.value = withRepeat(
       withTiming(-totalCardSetWidth, {
-        duration: turfs.length * 4000, // Adjust scroll speed here
+        duration: turfs.length * 4000,
         easing: Easing.linear,
       }),
-      -1, // infinite repeat
+      -1,
       false
     );
-  }, [turfs]);
+    return () => cancelAnimation(translateX);
+  }, [turfs.length, totalCardSetWidth, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+
+  if (turfs.length === 0) {
+    return <Text style={{ padding: 20, textAlign: 'center' }}>No turfs found</Text>;
+  }
+
+  const data = [...turfs, ...turfs];
 
   const handlePressIn = () => {
     cancelAnimation(translateX);
@@ -122,7 +130,7 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: 22,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.15,
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
     marginRight: CARD_SPACING,
     marginBottom: 10,
   },
-  imageWrap: { height: 140, position: 'relative' },
+  imageWrap: { height: 148, position: 'relative' },
   image: { width: '100%', height: '100%' },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,

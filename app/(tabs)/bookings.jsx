@@ -1,97 +1,161 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import PrimaryButton from "../../components/ui/PrimaryButton";
 import { db } from "../../config/firebaseConfig";
 
 export default function Bookings() {
-  const router=useRouter();
+  const router = useRouter();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
 
-  const fetchBookings = async () => {
-    setLoading(true);
+  const fetchBookings = useCallback(async ({ silent } = {}) => {
+    if (!silent) setLoading(true);
     const email = await AsyncStorage.getItem("userEmail");
     setUserEmail(email);
     if (!email) {
       setBookings([]);
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setRefreshing(false);
       return;
     }
     try {
       const q = query(collection(db, "bookings"), where("email", "==", email));
       const querySnapshot = await getDocs(q);
-      const now = new Date(); // ✅ Get the current date & time
-
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(item => {
-        if (!item.date) return false; // Skip if no date
-        const bookingDate = new Date(item.date); // Convert date string to JS Date object
-        return bookingDate > now; // ✅ Keep only future bookings
-      });
+      const now = new Date();
+      const data = querySnapshot.docs
+        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+        .filter((item) => {
+          if (!item.date) return false;
+          return new Date(item.date) > now;
+        });
       setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       setBookings([]);
     }
-    setLoading(false);
-  };
-  useEffect(() => {
-    fetchBookings();
+    if (!silent) setLoading(false);
+    setRefreshing(false);
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  if (loading && !refreshing) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#239B2D" />
-      </View>
+      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#0d9488" />
+      </SafeAreaView>
     );
   }
 
   if (!userEmail) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <Text className="text-xl font-bold text-black text-center m-4">Please sign in to view your bookings.</Text>
-        <TouchableOpacity onPress={()=>router.push("/signin")} className="p-2 my-2 bg-white rounded-lg border-white">
-            <Text className="text-xl font-semibold text-center text-green-600">
-                Sign In
+      <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
+        <LinearGradient
+          colors={["#0f766e", "#0d9488"]}
+          className="px-5 pb-10 pt-4 rounded-b-[28px]"
+        >
+          <Text className="text-white text-2xl font-bold">Your bookings</Text>
+          <Text className="text-teal-100 mt-1">
+            Sign in to see upcoming sessions and receipts in one place.
+          </Text>
+        </LinearGradient>
+        <View className="flex-1 px-6 justify-center items-center -mt-8">
+          <View className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm w-full max-w-sm items-center">
+            <View className="w-16 h-16 rounded-full bg-teal-50 items-center justify-center mb-4">
+              <Ionicons name="calendar-outline" size={32} color="#0d9488" />
+            </View>
+            <Text className="text-slate-900 font-bold text-lg text-center">
+              Sign in to view bookings
             </Text>
-        </TouchableOpacity>
-      </View>
-      
+            <Text className="text-slate-500 text-center mt-2 mb-6 leading-6">
+              We match reservations using your account email from Firebase Auth.
+            </Text>
+            <PrimaryButton label="Sign in" onPress={() => router.push("/(auth)/signin")} />
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (bookings.length === 0) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <Text className="text-xl text-[#239B2D] text-center m-4">No bookings found.</Text>
-      </View>
+      <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
+        <LinearGradient
+          colors={["#0f766e", "#0d9488"]}
+          className="px-5 pb-10 pt-4 rounded-b-[28px]"
+        >
+          <Text className="text-white text-2xl font-bold">Your bookings</Text>
+          <Text className="text-teal-100 mt-1">Nothing upcoming — time to book a pitch.</Text>
+        </LinearGradient>
+        <View className="flex-1 px-6 justify-center items-center -mt-8">
+          <View className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm w-full max-w-sm items-center">
+            <Ionicons name="football-outline" size={48} color="#cbd5e1" />
+            <Text className="text-slate-900 font-bold text-lg text-center mt-4">
+              No upcoming bookings
+            </Text>
+            <Text className="text-slate-500 text-center mt-2 mb-6">
+              Explore venues from Home or Discover and lock your next slot.
+            </Text>
+            <PrimaryButton label="Browse turfs" onPress={() => router.push("/discover")} />
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
-
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
+      <LinearGradient colors={["#0f766e", "#0d9488"]} className="px-5 pb-8 pt-4 rounded-b-[28px]">
+        <Text className="text-white text-2xl font-bold">Your bookings</Text>
+        <Text className="text-teal-100 mt-1">{bookings.length} upcoming session(s)</Text>
+      </LinearGradient>
       <FlatList
         data={bookings}
-        onRefresh={fetchBookings}
-        refreshing={loading}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 112 }}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRefreshing(true);
+          fetchBookings({ silent: true });
+        }}
         renderItem={({ item }) => (
-          <View className="bg-[#f0fdf4] rounded-xl p-4 mb-4 shadow-md">
-            <Text className="text-2xl font-bold text-[#239B2D] mb-2">{item.turf || item.name}</Text>
-            <Text className="text-base text-[#222] mb-1">Date: {item.date ? new Date(item.date).toLocaleString() : "-"}</Text>
-            <Text className="text-base text-[#222] mb-1">Slot: {item.slot}</Text>
-            <Text className="text-base text-[#222] mb-1">Hours: {item.selectedNumber} hrs</Text>
-            <Text className="text-base text-[#222] mb-1">Location: {item.location}</Text>
-            <Text className="text-base text-[#222] mb-1">Price: {item.price}</Text>
+          <View className="bg-white rounded-3xl p-5 mb-4 border border-slate-100 shadow-sm">
+            <Text className="text-teal-700 font-bold text-lg">
+              {item.turf || item.turfTitle || item.name}
+            </Text>
+            <View className="flex-row items-center mt-3">
+              <Ionicons name="time-outline" size={18} color="#64748b" />
+              <Text className="text-slate-600 ml-2 flex-1">
+                {item.date ? new Date(item.date).toLocaleString() : "—"}
+              </Text>
+            </View>
+            <View className="flex-row flex-wrap gap-x-4 gap-y-2 mt-3">
+              <Text className="text-slate-700">
+                <Text className="font-semibold text-slate-900">Slot </Text>
+                {item.slot ?? "—"}
+              </Text>
+              <Text className="text-slate-700">
+                <Text className="font-semibold text-slate-900">Hours </Text>
+                {item.selectedNumber ?? "—"}
+              </Text>
+            </View>
+            <View className="flex-row items-start mt-3">
+              <Ionicons name="location-outline" size={18} color="#64748b" style={{ marginTop: 2 }} />
+              <Text className="text-slate-600 ml-2 flex-1">{item.location ?? "—"}</Text>
+            </View>
+            <Text className="text-teal-600 font-bold mt-4">{item.price ?? ""}</Text>
           </View>
         )}
-        contentContainerStyle={{ padding: 16 }}
       />
     </SafeAreaView>
   );

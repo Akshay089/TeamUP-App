@@ -1,281 +1,161 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import {
-  FlatList,
-  Image,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Logo from "../../assets/images/logo.jpg";
-// import { turfs } from "../../store/turfs";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { collection, getDocs, query } from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FlatList,
+  Image,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import NearbyTurfs from '../../components/NearbyTurfs'; // adjust path if needed
+import { SafeAreaView } from "react-native-safe-area-context";
+import NearbyTurfs from "../../components/NearbyTurfs";
+import Logo from "../../assets/images/logo.jpg";
 import { db } from "../../config/firebaseConfig";
 import { useAuthStore } from "../../store/authStore";
 
-
-
-
-// #00BE76
 export default function Home() {
-  // useEffect(()=>{
-  //   uploadData();
-  // },[])
   const router = useRouter();
   const [turfs, setTurfs] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ Pull user from Zustand instead of AsyncStorage
   const user = useAuthStore((state) => state.user);
-  const userName = user?.fullName?.split(" ")[0] || "Player";
+  const isGuest = useAuthStore((state) => state.isGuest);
+  const userName = user?.fullName?.split(" ")[0] || (isGuest ? "Guest" : "Player");
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => router.push(`/turf/${item.name}`)}>
-      <Image
-        resizeMode="cover"
-        source={{ uri: item.image }}
-        className="w-screen h-80 mb-5 my-20 self-center mt-0 rounded-lg"
-      />
-      <View className="flex-row">
-        <Text className=" text-black text-xl font-bold mb-2">{item.name}</Text>
-        <Text className="text-black text-lg font-bold ml-48 mr-0 mx-28 ">
-          {item.rating}
-        </Text>
-        <MaterialIcons name="star" size={24} color="#facc15" />
-      </View>
-      <Text className="text-black text-base mb-0">{item.location}</Text>
-      <Text className="text-[#00BE76] text-xl font-semibold mb-10">
-        {item.price}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const getTurfs = async () => {
+  const loadTurfs = useCallback(async () => {
     try {
-      const q = query(collection(db, "turfs"));
-      const res = await getDocs(q);
-
-      const turfList = [];
-      res.forEach((doc) => {
-        turfList.push({ id: doc.id, ...doc.data() });
-      });
-
-      setTurfs(turfList);
+      const res = await getDocs(query(collection(db, "turfs")));
+      const list = [];
+      res.forEach((docSnap) => list.push({ id: docSnap.id, ...docSnap.data() }));
+      setTurfs(list);
     } catch (error) {
       console.error("Error fetching turfs:", error);
     }
-  };
-
-  useEffect(() => {
-    getTurfs();
   }, []);
 
+  useEffect(() => {
+    loadTurfs();
+  }, [loadTurfs]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadTurfs();
+    setRefreshing(false);
+  };
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      activeOpacity={0.92}
+      onPress={() => router.push(`/turf/${item.name}`)}
+      className="mx-4 mb-5 bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm shadow-slate-200/90"
+    >
+      <Image
+        resizeMode="cover"
+        source={{
+          uri: item.image || "https://via.placeholder.com/800x480.png?text=Turf",
+        }}
+        className="w-full h-52"
+      />
+      <View className="p-4">
+        <View className="flex-row justify-between items-start gap-3">
+          <Text className="text-slate-900 text-xl font-bold flex-shrink">{item.name}</Text>
+          <View className="flex-row items-center bg-amber-50 px-2.5 py-1 rounded-full">
+            <Text className="text-amber-900 font-semibold">{item.rating ?? "—"}</Text>
+            <MaterialIcons name="star" size={18} color="#f59e0b" style={{ marginLeft: 4 }} />
+          </View>
+        </View>
+        <View className="flex-row items-center mt-2">
+          <Ionicons name="location-outline" size={18} color="#64748b" />
+          <Text className="text-slate-500 ml-1 flex-1" numberOfLines={2}>
+            {item.location}
+          </Text>
+        </View>
+        <Text className="text-teal-600 text-xl font-bold mt-3">{item.price}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
-    
-    <SafeAreaView className="bg-white">
-      
+    <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
       <LinearGradient
-        colors={["#003427", "#239B2D"]} // Change colors as you want
+        colors={["#0f766e", "#0d9488"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        className="h-20 flex flex-row items-center border-b-2 border-[#003427]"
+        className="flex-row items-center px-4 py-4 rounded-b-3xl"
       >
-        <Image source={Logo} className="h-14 ml-2 w-14 rounded-2xl" />
-        <Text className="ml-4 font-bold text-xl text-white">
-          Hello {userName}!
-        </Text>
-      </LinearGradient>
-      <View>
-
-      </View>
-     {/* NearbyTurfs fixed height container */}
-<ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}>
-
-      <View style={{ height: 260,marginTop:9,backgroundColor:'#FFFFFF' }}>
-        <View style={{marginTop:1 ,flexDirection:'row'}}>
-          <Text className="ml-3 font-semibold mb-2 text-2xl ">📍</Text>
-          <Text className=" font-semibold  text-1xl mt-2">Your NearBy Turfs</Text>
-
+        <Image source={Logo} className="h-12 w-12 rounded-2xl border border-white/30" />
+        <View className="ml-3 flex-1">
+          <Text className="text-teal-100 text-sm font-medium">Welcome back</Text>
+          <Text className="text-white text-xl font-bold">{userName}</Text>
         </View>
-        <NearbyTurfs />
-      </View>
+        <TouchableOpacity
+          onPress={() => router.push("/notifications")}
+          hitSlop={12}
+          className="w-11 h-11 rounded-2xl bg-white/15 items-center justify-center border border-white/20"
+        >
+          <Ionicons name="notifications-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0d9488" />
+        }
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        <View className="mt-5 px-4 flex-row flex-wrap gap-2">
+          <View className="flex-1 min-w-[45%] bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+            <Text className="text-slate-400 text-xs font-semibold uppercase">Quick tip</Text>
+            <Text className="text-slate-900 font-bold mt-1 leading-5">
+              Pick a slot before peak hours fill up.
+            </Text>
+          </View>
+          <View className="flex-1 min-w-[45%] bg-teal-50 rounded-2xl p-4 border border-teal-100">
+            <Text className="text-teal-800 text-xs font-semibold uppercase">Discover</Text>
+            <TouchableOpacity onPress={() => router.push("/discover")} className="mt-2 flex-row items-center">
+              <Text className="text-teal-900 font-bold flex-1">Browse directory</Text>
+              <Ionicons name="arrow-forward" size={18} color="#0f766e" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="mt-6 px-4 flex-row items-center justify-between">
+          <Text className="text-slate-900 font-bold text-lg">Nearby on map</Text>
+          <View className="flex-row items-center bg-white px-3 py-1 rounded-full border border-slate-100">
+            <Ionicons name="navigate-outline" size={14} color="#0d9488" />
+            <Text className="text-slate-600 text-xs font-semibold ml-1">Live</Text>
+          </View>
+        </View>
+
+        <View className="h-[260px] mx-4 mt-3 rounded-3xl overflow-hidden bg-white border border-slate-100 shadow-sm">
+          <NearbyTurfs />
+        </View>
+
+        <Text className="text-slate-900 font-bold text-lg px-4 mt-8 mb-2">All venues</Text>
 
         {turfs.length > 0 ? (
           <FlatList
             data={turfs}
             renderItem={renderItem}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.id} // ✅ unique key from Firestore
-            nestedScrollEnabled={true} // <-- Important
-            scrollEnabled={false} 
-            contentContainerStyle={{ padding: 8 }}
+            scrollEnabled={false}
+            keyExtractor={(item) => item.id}
+            nestedScrollEnabled
           />
-        ) : (    
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              height: 200,
-            }}
-          >
-            {/* <ActivityIndicator
-              animating
-              size="large"
-              color="#239B2D"
-              className="mt-96 pt-96 justify-items-center "
-            /> */}
-            {/* ✅ Show nearby turfs first */}
+        ) : (
+          <View className="py-16 items-center px-8">
+            <Text className="text-slate-500 text-center">
+              No turfs yet — add documents to the{" "}
+              <Text className="font-semibold text-slate-700">turfs</Text> collection in Firebase.
+            </Text>
           </View>
         )}
-     </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { MaterialIcons } from "@expo/vector-icons";
-// import { useEffect, useState } from "react";
-// import {
-//   FlatList,
-//   Image,
-//   Text,
-//   TouchableOpacity,
-//   View
-// } from "react-native";
-// import { SafeAreaView } from "react-native-safe-area-context";
-// import Logo from "../../assets/images/logo.jpg";
-// // import { turfs } from "../../store/turfs";
-// import { LinearGradient } from "expo-linear-gradient";
-// import { useRouter } from "expo-router";
-// import { collection, getDocs, query } from "firebase/firestore";
-// import { ScrollView } from "react-native-gesture-handler";
-// import { db } from "../../config/firebaseConfig";
-// import { useAuthStore } from "../../store/authStore";
-// import NearbyTurfs from './../../components/NearbyTurfs';
-
-
-// // #00BE76
-// export default function Home() {
-//   // useEffect(()=>{
-//   //   uploadData();
-//   // },[])
-//   const router = useRouter();
-//   const [turfs, setTurfs] = useState([]);
-
-//   // ✅ Pull user from Zustand instead of AsyncStorage
-//   const user = useAuthStore((state) => state.user);
-//   const userName = user?.fullName?.split(" ")[0] || "Player";
-
-//   const renderItem = ({ item }) => (
-//     <TouchableOpacity onPress={() => router.push(`/turf/${item.name}`)}>
-//       <Image
-//         resizeMode="cover"
-//         source={{ uri: item.image }}
-//         className="w-screen h-80 mb-5 my-20 self-center mt-0 rounded-lg"
-//       />
-//       <View className="flex-row">
-//         <Text className=" text-black text-xl font-bold mb-2">{item.name}</Text>
-//         <Text className="text-black text-lg font-bold ml-48 mr-0 mx-28 ">
-//           {item.rating}
-//         </Text>
-//         <MaterialIcons name="star" size={24} color="#facc15" />
-//       </View>
-//       <Text className="text-black text-base mb-0">{item.location}</Text>
-//       <Text className="text-[#00BE76] text-xl font-semibold mb-10">
-//         {item.price}
-//       </Text>
-//     </TouchableOpacity>
-//   );
-
-//   const getTurfs = async () => {
-//     try {
-//       const q = query(collection(db, "turfs"));
-//       const res = await getDocs(q);
-
-//       const turfList = [];
-//       res.forEach((doc) => {
-//         turfList.push({ id: doc.id, ...doc.data() });
-//       });
-
-//       setTurfs(turfList);
-//     } catch (error) {
-//       console.error("Error fetching turfs:", error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     getTurfs();
-//   }, []);
-
-//   return (
-//     <SafeAreaView className="bg-white">
-//       <LinearGradient
-//         colors={["#003427", "#239B2D"]} // Change colors as you want
-//         start={{ x: 0, y: 0 }}
-//         end={{ x: 1, y: 0 }}
-//         className="h-20 flex flex-row items-center border-b-2 border-[#003427]"
-//       >
-//         <Image source={Logo} className="h-14 ml-2 w-14 rounded-2xl" />
-//         <Text className="ml-4 font-bold text-xl text-white">
-//           Hello {userName}!
-//         </Text>
-//       </LinearGradient>
-//      <ScrollView>
-
-//       <View style={{ height: 260,marginTop:9,backgroundColor:'#FFFFFF' }}>
-//         <View style={{marginTop:1 ,flexDirection:'row'}}>
-//           <Text className="ml-3 font-semibold mb-2 text-2xl ">📍</Text>
-//           <Text className=" font-semibold  text-1xl mt-2">Your NearBy Turfs</Text>
-
-//         </View>
-//          <NearbyTurfs /> 
-//       </View>
-
-//         {turfs.length > 0 ? (
-//           <FlatList
-//             data={turfs}
-//             renderItem={renderItem}
-//             showsVerticalScrollIndicator={false}
-//             keyExtractor={(item) => item.id} // ✅ unique key from Firestore
-//             nestedScrollEnabled={true} // <-- Important
-//             scrollEnabled={false} 
-//             contentContainerStyle={{ padding: 8 }}
-//           />
-//         ) : (    
-//           <View
-//             style={{
-//               flex: 1,
-//               justifyContent: "center",
-//               alignItems: "center",
-//               height: 200,
-//             }}
-//           >
-//             {/* <ActivityIndicator
-//               animating
-//               size="large"
-//               color="#239B2D"
-//               className="mt-96 pt-96 justify-items-center "
-//             /> */}
-//             {/* ✅ Show nearby turfs first */}
-//           </View>
-//         )}
-//      </ScrollView>
-//     </SafeAreaView>
-//   );
-// }

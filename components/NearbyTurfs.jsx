@@ -1,21 +1,12 @@
 //components\NearbyTurfs.jsx
 import { collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
-import {
-    ActivityIndicator,
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { db } from '../config/firebaseConfig';
 import { getNearbyTurfs } from '../services/GooglePlacesService';
 import { getUserLocation } from '../services/LocationService';
 import ContinuousCarousel from './ContinuousCarousel';
-
-const { width } = Dimensions.get('window');
 
 export default function NearbyTurfs() {
   const [location, setLocation] = useState(null);
@@ -69,7 +60,7 @@ export default function NearbyTurfs() {
   }, [selectedTurf]);
 
   if (loading) {
-    return <ActivityIndicator style={{ flex: 1 }} size="large" color="#000" />;
+    return <ActivityIndicator style={{ flex: 1 }} size="large" color="#0d9488" />;
   }
 
   if (!location) {

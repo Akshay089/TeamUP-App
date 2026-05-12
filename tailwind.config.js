@@ -9,6 +9,15 @@ module.exports = {
     extend: {
       
       colors: {
+        brand: {
+          accent: "#0d9488",
+          "accent-dark": "#0f766e",
+          "accent-muted": "#ccfbf1",
+          ink: "#0f172a",
+          muted: "#64748b",
+          surface: "#f8fafc",
+          border: "#e2e8f0",
+        },
         light: {
           text: '#00BE76',
           secondaryText: '#757575',
