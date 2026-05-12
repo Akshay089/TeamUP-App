@@ -1,14 +1,16 @@
 //components\NearbyTurfs.jsx
+import { collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { db } from '../config/firebaseConfig';
 import { getNearbyTurfs } from '../services/GooglePlacesService';
 import { getUserLocation } from '../services/LocationService';
 import ContinuousCarousel from './ContinuousCarousel';
@@ -31,7 +33,17 @@ export default function NearbyTurfs() {
           return;
         }
         setLocation(loc);
-        const results = await getNearbyTurfs(loc.latitude, loc.longitude);
+        let results = await getNearbyTurfs(loc.latitude, loc.longitude);
+        if (results.length === 0) {
+          // Fallback to Firebase turfs
+          const q = query(collection(db, "turfs"));
+          const res = await getDocs(q);
+          const turfList = [];
+          res.forEach((doc) => {
+            turfList.push({ id: doc.id, ...doc.data(), geometry: { location: { lat: loc.latitude, lng: loc.longitude } } });
+          });
+          results = turfList;
+        }
         setTurfs(results);
       } catch (err) {
         console.log('NearbyTurfs useEffect err', err);
@@ -92,7 +104,7 @@ export default function NearbyTurfs() {
               longitude: selectedTurf.geometry.location.lng,
             }}
             title={selectedTurf.name}
-            description={selectedTurf.vicinity}
+            description={selectedTurf.vicinity || selectedTurf.location}
           />
         </MapView>
 

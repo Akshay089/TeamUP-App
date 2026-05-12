@@ -1,20 +1,20 @@
 // components/ContinuousCarousel.jsx
 import { useEffect } from 'react';
 import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
+    cancelAnimation,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withTiming,
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -69,7 +69,7 @@ export default function ContinuousCarousel({ turfs = [], onCardPress }) {
         style={[styles.scroller, animatedStyle, { width: totalCardSetWidth * 2 }]}
       >
         {data.map((item, index) => (
-          <View style={styles.card} key={`${item.place_id}-${index}`}>
+          <View style={styles.card} key={`${item.id || item.place_id}-${index}`}>
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => onCardPress(item)}
@@ -80,9 +80,10 @@ export default function ContinuousCarousel({ turfs = [], onCardPress }) {
                 <Image
                   source={{
                     uri:
-                      item.photos?.length > 0
+                      item.image ||
+                      (item.photos?.length > 0
                         ? getPhotoUrl(item.photos[0].photo_reference)
-                        : 'https://via.placeholder.com/300x200.png?text=Turf',
+                        : 'https://via.placeholder.com/300x200.png?text=Turf'),
                   }}
                   style={styles.image}
                 />
@@ -98,7 +99,7 @@ export default function ContinuousCarousel({ turfs = [], onCardPress }) {
                   {item.name}
                 </Text>
                 <Text style={styles.address} numberOfLines={1}>
-                  {item.vicinity}
+                  {item.vicinity || item.location}
                 </Text>
                 <Text style={styles.meta}>{item.user_ratings_total ?? 0} reviews</Text>
               </View>

@@ -4,7 +4,7 @@ const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
 
 export const getNearbyTurfs = async (lat, lng) => {
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=turf&location=${lat},${lng}&radius=5000&key=${GOOGLE_MAPS_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=park&keyword=sports%20field&location=${lat},${lng}&radius=10000&key=${GOOGLE_MAPS_API_KEY}`;
     const res = await fetch(url);
     const data = await res.json();
     return data.results || [];
