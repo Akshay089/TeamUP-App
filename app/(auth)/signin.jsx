@@ -27,23 +27,29 @@ export default function SignIn() {
       );
 
       const user = userCredential.user;
-      const userDoc=await getDoc(doc(db, "users", user.uid));
-      
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
       if (userDoc.exists()) {
-        // Store user email in AsyncStorage 
-      // ✅ Store in Zustand global state
+        const role = userDoc.data().role || "player";
         const userData = {
           uid: user.uid,
           email: user.email,
-          fullName: userDoc.data().fullName || "Player"
+          fullName: userDoc.data().fullName || "Player",
+          role,
         };
         setUser(userData);
         setIsGuest(false);
-        
+
         await AsyncStorage.setItem("userEmail", values.email);
         await AsyncStorage.setItem("isGuest", "false");
+        await AsyncStorage.setItem("userRole", role);
         console.log("User data found:", user.uid);
-        router.push("/home");
+
+        if (role === "owner") {
+          router.push("/owner/dashboard");
+        } else {
+          router.push("/home");
+        }
       } else {
         Alert.alert(
           "Profile missing",

@@ -37,6 +37,7 @@ export default function Profile() {
   const router = useRouter();
   const [userEmail, setUserEmail] = useState(null);
   const [guestFlag, setGuestFlag] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const user = useAuthStore((s) => s.user);
   const logoutStore = useAuthStore((s) => s.logout);
@@ -46,19 +47,27 @@ export default function Profile() {
     (async () => {
       const email = await AsyncStorage.getItem("userEmail");
       const g = await AsyncStorage.getItem("isGuest");
+      const role = await AsyncStorage.getItem("userRole");
       setUserEmail(email);
       setGuestFlag(g === "true");
+      setUserRole(user?.role || role || null);
     })();
-  }, []);
+  }, [user]);
 
+  const roleLabel = userRole === "owner" ? "Turf owner" : "Player";
   const displayName = user?.fullName || (guestFlag ? "Guest player" : "TeamUP member");
-  const subtitle = userEmail || (guestFlag ? "Browsing as guest — sign in to sync bookings" : null);
+  const subtitle = userEmail
+    ? `${roleLabel} · ${userEmail}`
+    : guestFlag
+    ? "Browsing as guest — sign in to sync bookings"
+    : null;
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       await AsyncStorage.removeItem("userEmail");
       await AsyncStorage.removeItem("isGuest");
+      await AsyncStorage.removeItem("userRole");
       logoutStore();
       setUserEmail(null);
       setGuestFlag(false);
@@ -130,6 +139,14 @@ export default function Profile() {
                 subtitle="Booking tips & support"
                 onPress={() => router.push("/help")}
               />
+              {userRole === "owner" ? (
+                <MenuRow
+                  icon="business-outline"
+                  label="Manage turfs"
+                  subtitle="Create and update your listings"
+                  onPress={() => router.push("/owner/dashboard")}
+                />
+              ) : null}
               {guestFlag && !userEmail ? (
                 <MenuRow
                   icon="exit-outline"
@@ -144,20 +161,14 @@ export default function Profile() {
                 />
               ) : null}
               {userEmail ? (
-                <MenuRow
-                  icon="log-out-outline"
-                  label="Sign out"
-                  onPress={handleLogout}
-                  danger
-                />
+                <MenuRow icon="log-out-outline" label="Sign out" onPress={handleLogout} danger />
               ) : null}
             </>
           )}
         </View>
 
         <Text className="text-xs text-center text-slate-400 px-8 leading-5">
-          TeamUP · Venue availability syncs from Firebase. Payments run through Razorpay when
-          configured.
+          TeamUP · Venue availability syncs from Firebase. Payments run through Razorpay when configured.
         </Text>
       </ScrollView>
     </SafeAreaView>
