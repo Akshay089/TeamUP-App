@@ -1,21 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Yup from "yup";
+import SlotsManager from "../../components/layout/turf/SlotsManager";
 import { db } from "../../config/firebaseConfig";
 import { useAuthStore } from "../../store/authStore";
 import { pickAndUploadImage } from "../../utils/imageUtils";
@@ -48,6 +49,7 @@ export default function EditTurf() {
   const [submitting, setSubmitting] = useState(false);
   const [images, setImages] = useState([]);
   const [uploadingIndex, setUploadingIndex] = useState(-1);
+  const [slots, setSlots] = useState([]);
 
   useEffect(() => {
     const fetchTurf = async () => {
@@ -58,6 +60,14 @@ export default function EditTurf() {
           const turfData = docSnap.data();
           setTurf(turfData);
           setImages(turfData.images || []);
+
+          // Fetch slots for this turf
+          const slotsQuery = query(collection(db, "slots"), where("turfId", "==", turfId));
+          const slotsSnapshot = await getDocs(slotsQuery);
+          if (!slotsSnapshot.empty) {
+            const slotsData = slotsSnapshot.docs[0].data();
+            setSlots(slotsData.slot || []);
+          }
         }
       } catch (error) {
         console.error("Error fetching turf:", error);
@@ -72,6 +82,11 @@ export default function EditTurf() {
   const handleUpdateTurf = async (values) => {
     if (images.length < 1) {
       Alert.alert("Add images", "Please add at least one image for your turf.");
+      return;
+    }
+
+    if (slots.length < 1) {
+      Alert.alert("Add time slots", "Please add at least one time slot for your turf.");
       return;
     }
 
@@ -92,6 +107,15 @@ export default function EditTurf() {
       setSubmitting(true);
       const docRef = doc(db, "turfs", turfId);
       await updateDoc(docRef, updatedTurf);
+
+      // Update slots
+      const slotsQuery = query(collection(db, "slots"), where("turfId", "==", turfId));
+      const slotsSnapshot = await getDocs(slotsQuery);
+      if (!slotsSnapshot.empty) {
+        const slotsDoc = slotsSnapshot.docs[0];
+        await updateDoc(slotsDoc.ref, { slot: slots });
+      }
+
       Alert.alert("Updated", "Your turf has been updated successfully.");
       router.push({ pathname: "/owner/turf-details", params: { turfId } });
     } catch (error) {
@@ -132,7 +156,15 @@ export default function EditTurf() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        {/* <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}> */}
+        <ScrollView
+  showsVerticalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"
+  contentContainerStyle={{
+    paddingBottom: 200,
+    flexGrow: 1,
+  }}
+>
           <View className="px-5 pt-5 pb-4 bg-white border-b border-slate-200 flex-row items-center">
             <TouchableOpacity onPress={() => router.back()} hitSlop={12} className="mr-3">
               <Ionicons name="chevron-back" size={28} color="#0f172a" />
@@ -289,6 +321,9 @@ export default function EditTurf() {
                       );
                     })}
                   </View>
+
+                  {/* Time Slots */}
+                  <SlotsManager slots={slots} setSlots={setSlots} />
 
                   <TouchableOpacity
                     activeOpacity={0.85}

@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Formik } from "formik";
 import { useState } from "react";
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Yup from "yup";
+import SlotsManager from "../../components/layout/turf/SlotsManager";
 import { db } from "../../config/firebaseConfig";
 import { useAuthStore } from "../../store/authStore";
 import { pickAndUploadImage } from "../../utils/imageUtils";
@@ -35,6 +36,7 @@ export default function CreateTurf() {
   const [submitting, setSubmitting] = useState(false);
   const [images, setImages] = useState([]);
   const [uploadingIndex, setUploadingIndex] = useState(-1);
+  const [slots, setSlots] = useState([]);
 
   const handleAddImage = async (index) => {
     setUploadingIndex(index);
@@ -59,6 +61,11 @@ export default function CreateTurf() {
       return;
     }
 
+    if (slots.length < 1) {
+      Alert.alert("Add time slots", "Please add at least one time slot for your turf.");
+      return;
+    }
+
     const newTurf = {
       name: values.name,
       description: values.description,
@@ -78,7 +85,18 @@ export default function CreateTurf() {
 
     try {
       setSubmitting(true);
-      await addDoc(collection(db, "turfs"), newTurf);
+      const turfRef = await addDoc(collection(db, "turfs"), newTurf);
+      
+      // Save slots in a separate collection, linked to the turf
+      const slotsData = {
+        ref_id: turfRef,
+        turfId: turfRef.id,
+        turfName: values.name,
+        slot: slots,
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, "slots"), slotsData);
+
       Alert.alert("Success!", "Your turf has been published successfully.", [
         { text: "View", onPress: () => router.push("/owner/dashboard") },
       ]);
@@ -268,6 +286,9 @@ export default function CreateTurf() {
                       );
                     })}
                   </View>
+
+                  {/* Time Slots */}
+                  <SlotsManager slots={slots} setSlots={setSlots} />
 
                   {/* Publish Button */}
                   <TouchableOpacity

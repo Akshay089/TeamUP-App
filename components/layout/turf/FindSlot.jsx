@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { Formik } from "formik";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import RazorpayCheckout from "react-native-razorpay";
@@ -39,6 +39,28 @@ export default function FindSlot({
   const [slotsVisible, setSlotsVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState([]);
+
+  // Check booked slots for the selected date
+  useEffect(() => {
+    const checkBookedSlots = async () => {
+      try {
+        const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const q = query(
+          collection(db, "bookings"),
+          where("turf", "==", turf),
+          where("date", ">=", new Date(dateStr).toISOString()),
+          where("date", "<", new Date(new Date(dateStr).getTime() + 24 * 60 * 60 * 1000).toISOString())
+        );
+        const snapshot = await getDocs(q);
+        const booked = snapshot.docs.map(doc => doc.data().slot);
+        setBookedSlots(booked);
+      } catch (error) {
+        console.log("Error checking booked slots:", error);
+      }
+    };
+    checkBookedSlots();
+  }, [date, turf]);
 
   const handlePress = () => {
     setSlotsVisible(!slotsVisible);
@@ -151,17 +173,30 @@ export default function FindSlot({
               No time slots loaded yet. Check Firebase `slots` for this venue.
             </Text>
           ) : (
-            slotTimes.map((time, index) => (
-              <TouchableOpacity
-                key={`${time}-${index}`}
-                onPress={() => setSelectedSlot(time)}
-                className={`bg-teal-600 px-5 py-3.5 m-2 rounded-2xl ${
-                  selectedSlot && selectedSlot !== time ? "opacity-45" : ""
-                }`}
-              >
-                <Text className="text-white text-base font-semibold">{time}</Text>
-              </TouchableOpacity>
-            ))
+            slotTimes.map((time, index) => {
+              const isBooked = bookedSlots.includes(time);
+              const isSelected = selectedSlot === time;
+              return (
+                <TouchableOpacity
+                  key={`${time}-${index}`}
+                  onPress={() => !isBooked && setSelectedSlot(time)}
+                  disabled={isBooked}
+                  className={`px-5 py-3.5 m-2 rounded-2xl ${
+                    isBooked 
+                      ? "bg-red-500" 
+                      : isSelected 
+                      ? "bg-teal-600" 
+                      : "bg-teal-400"
+                  } ${isBooked ? "opacity-50" : ""}`}
+                >
+                  <Text className={`text-base font-semibold ${
+                    isBooked ? "text-white line-through" : "text-white"
+                  }`}>
+                    {time}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       )}

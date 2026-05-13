@@ -1,13 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, getDocs, query, where } from "firebase/firestore";
+// import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebaseConfig";
 import { useAuthStore } from "../../store/authStore";
 
-function TurfCard({ turf, router }) {
+function TurfCard({ turf, router, onDelete })  {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -44,10 +52,20 @@ function TurfCard({ turf, router }) {
           <Ionicons name="pencil" size={14} color="#475569" />
           <Text className="text-slate-700 font-semibold ml-1 text-xs">Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.8} className="flex-1 flex-row items-center justify-center bg-red-50 rounded-2xl py-2">
+        {/* <TouchableOpacity activeOpacity={0.8} className="flex-1 flex-row items-center justify-center bg-red-50 rounded-2xl py-2">
           <Ionicons name="trash" size={14} color="#dc2626" />
           <Text className="text-red-700 font-semibold ml-1 text-xs">Delete</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => onDelete(turf.id)}
+  className="flex-1 flex-row items-center justify-center bg-red-50 rounded-2xl py-2"
+>
+  <Ionicons name="trash" size={14} color="#dc2626" />
+  <Text className="text-red-700 font-semibold ml-1 text-xs">
+    Delete
+  </Text>
+</TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -87,6 +105,39 @@ export default function OwnerDashboard() {
     loadOwnerTurfs();
   }, [loadOwnerTurfs]);
 
+  const handleDeleteTurf = async (turfId) => {
+  Alert.alert(
+    "Delete Turf",
+    "Are you sure you want to delete this turf?",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteDoc(doc(db, "turfs", turfId));
+
+            setTurfs((prev) => prev.filter((item) => item.id !== turfId));
+
+            Alert.alert("Success", "Turf deleted successfully.");
+          } catch (error) {
+            console.error("Delete turf error:", error);
+
+            Alert.alert(
+              "Delete Failed",
+              "Unable to delete turf. Please try again."
+            );
+          }
+        },
+      },
+    ]
+  );
+};
+
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
       <View className="px-5 pt-5 pb-4 bg-white border-b border-slate-200">
@@ -101,8 +152,8 @@ export default function OwnerDashboard() {
           className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-3xl px-4 py-4 flex-row items-center justify-between shadow-sm"
         >
           <View>
-            <Text className="text-white text-base font-semibold">Add new turf</Text>
-            <Text className="text-teal-100 text-sm mt-1">Create your turf listing</Text>
+            <Text className="text-black text-base font-semibold">Add new turf</Text>
+            <Text className="text-blue-500 text-sm mt-1">Create your turf listing</Text>
           </View>
           <Ionicons name="add-circle-outline" size={28} color="white" />
         </TouchableOpacity>
@@ -116,7 +167,14 @@ export default function OwnerDashboard() {
           <FlatList
             data={turfs}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <TurfCard turf={item} router={router} />}
+            // renderItem={({ item }) => <TurfCard turf={item} router={router} />}
+            renderItem={({ item }) => (
+  <TurfCard
+    turf={item}
+    router={router}
+    onDelete={handleDeleteTurf}
+  />
+)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 120 }}
           />

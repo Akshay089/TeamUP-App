@@ -48,6 +48,14 @@ export default function Home() {
     setRefreshing(false);
   };
 
+  const formatPrice = (price) => {
+    if (price == null || price === "") return "";
+    const text = String(price);
+    if (text.includes("/hour")) return text;
+    if (text.startsWith("₹")) return `${text}/hour`;
+    return `₹${text}/hour`;
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       activeOpacity={0.92}
@@ -57,7 +65,7 @@ export default function Home() {
       <Image
         resizeMode="cover"
         source={{
-          uri: item.image || "https://via.placeholder.com/800x480.png?text=Turf",
+          uri: item.images?.[0] || item.image || "https://via.placeholder.com/800x480.png?text=Turf",
         }}
         className="w-full h-52"
       />
@@ -75,7 +83,7 @@ export default function Home() {
             {item.location}
           </Text>
         </View>
-        <Text className="text-teal-600 text-xl font-bold mt-3">{item.price}</Text>
+        <Text className="text-teal-600 text-xl font-bold mt-3">{formatPrice(item.price)}</Text>
       </View>
     </TouchableOpacity>
   );

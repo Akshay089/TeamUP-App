@@ -73,7 +73,7 @@ export default function Turf(){
 
 
   const handleNextImage=()=>{
-     const carouselLength=carouselData[0]?.images.length;
+     const carouselLength=turfData?.images?.length;
      if(currentIndex < carouselLength-1){
       const nextIndex =currentIndex+1;
       setCurrentIndex(nextIndex);
@@ -87,7 +87,7 @@ export default function Turf(){
      }
   };
   const handlePrevImage=()=>{
-     const carouselLength=carouselData[0]?.images.length;
+     const carouselLength=turfData?.images?.length;
      if(currentIndex>0){
       const prevIndex =currentIndex-1;
       setCurrentIndex(prevIndex);
@@ -116,7 +116,7 @@ export default function Turf(){
 
         <View style={{position:"absolute",display:"flex",justifyContent:"center",alignItems:"center",flexDirection:"row",left:"50%",transform:[{translateX:-50}],zIndex:10,bottom:15}}>
 
-          {(carouselData[0]?.images ?? []).map((_, i) => (
+          {(turfData?.images ?? []).map((_, i) => (
             <View
               key={i}
               className={`bg-white h-2 w-2 ${i === currentIndex && "h-3.5 w-3.5"}  p-1 ml-5 mx-1 justify-items-center rounded-full`}
@@ -219,7 +219,7 @@ export default function Turf(){
       <View className="h-64 mx-4 mt-4 rounded-3xl overflow-hidden bg-slate-200 border border-slate-100 shadow-sm">
         <FlatList
           ref={flatListRef}
-          data={carouselData[0]?.images}
+          data={turfData?.images || []}
           renderItem={carouselItem}
           horizontal
           scrollEnabled={false}

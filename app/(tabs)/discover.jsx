@@ -121,7 +121,7 @@ export default function Discover() {
           >
             <Image
               source={{
-                uri: item.image || "https://via.placeholder.com/600x360.png?text=Turf",
+                uri: item.images?.[0] || item.image || "https://via.placeholder.com/600x360.png?text=Turf",
               }}
               className="w-full h-44"
               resizeMode="cover"
@@ -140,7 +140,7 @@ export default function Discover() {
                   {item.location}
                 </Text>
               </View>
-              <Text className="text-teal-600 font-bold text-lg mt-3">{item.price}</Text>
+              <Text className="text-teal-600 font-bold text-lg mt-3">{item.price && String(item.price).includes("/hour") ? item.price : `₹${item.price}/hour`}</Text>
             </View>
           </TouchableOpacity>
         )}
