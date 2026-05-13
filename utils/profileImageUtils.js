@@ -2,35 +2,35 @@ import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
 import { CLOUDINARY_API, CLOUDINARY_CONFIG } from "../config/cloudinaryConfig";
 
-export const pickImageFromGallery = async () => {
+export const pickProfileImage = async () => {
   try {
     const mediaTypes =
       ImagePicker.MediaType?.Images || ImagePicker.MediaTypeOptions.Images;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes,
       allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
+      aspect: [1, 1],
+      quality: 0.9,
     });
 
     if (!result.canceled) {
       return result.assets[0];
     }
   } catch (error) {
-    console.error("Error picking image:", error);
+    console.error("Error picking profile image:", error);
     Alert.alert("Error", "Failed to pick image from gallery");
   }
   return null;
 };
 
-export const uploadImageToCloudinary = async (imageUri, filename = "image") => {
+export const uploadProfileImageToCloudinary = async (imageUri) => {
   try {
     const data = new FormData();
 
     data.append("file", {
       uri: imageUri,
       type: "image/jpeg",
-      name: `${filename}.jpg`,
+      name: `profile-${Date.now()}.jpg`,
     });
 
     data.append("upload_preset", CLOUDINARY_CONFIG.UPLOAD_PRESET);
@@ -53,16 +53,19 @@ export const uploadImageToCloudinary = async (imageUri, filename = "image") => {
       throw new Error("No URL returned from Cloudinary");
     }
   } catch (error) {
-    console.error("Error uploading image to Cloudinary:", error);
-    Alert.alert("Upload failed", "Unable to upload image. Please try again.");
+    console.error("Error uploading profile image to Cloudinary:", error);
+    Alert.alert(
+      "Upload failed",
+      "Unable to upload profile image. Please try again.",
+    );
     return null;
   }
 };
 
-export const pickAndUploadImage = async (filename = "image") => {
-  const image = await pickImageFromGallery();
+export const pickAndUploadProfileImage = async () => {
+  const image = await pickProfileImage();
   if (!image) return null;
 
-  const uploadedUrl = await uploadImageToCloudinary(image.uri, filename);
+  const uploadedUrl = await uploadProfileImageToCloudinary(image.uri);
   return uploadedUrl;
 };

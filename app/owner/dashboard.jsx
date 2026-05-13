@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -65,13 +65,15 @@ export default function OwnerDashboard() {
     if (!ownerId) return;
     setLoading(true);
     try {
-      const q = query(
-        collection(db, "turfs"),
-        where("ownerId", "==", ownerId),
-        orderBy("createdAt", "desc")
-      );
+      const q = query(collection(db, "turfs"), where("ownerId", "==", ownerId));
       const snapshot = await getDocs(q);
-      const list = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+      const list = snapshot.docs
+        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+        .sort((a, b) => {
+          const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return bTime - aTime;
+        });
       setTurfs(list);
     } catch (error) {
       console.error("Error loading owner turfs:", error);
