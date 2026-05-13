@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -21,6 +21,7 @@ export default function TurfDetails() {
   const { turfId } = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
   const [turf, setTurf] = useState(null);
+  const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -31,6 +32,14 @@ export default function TurfDetails() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setTurf({ id: docSnap.id, ...docSnap.data() });
+
+          // Fetch slots for this turf
+          const slotsQuery = query(collection(db, "slots"), where("turfId", "==", turfId));
+          const slotsSnapshot = await getDocs(slotsQuery);
+          if (!slotsSnapshot.empty) {
+            const slotsData = slotsSnapshot.docs[0].data();
+            setSlots(slotsData.slot || []);
+          }
         }
       } catch (error) {
         console.error("Error fetching turf:", error);
@@ -164,6 +173,20 @@ export default function TurfDetails() {
                 <Ionicons name="arrow-forward" size={20} color="#3b82f6" />
               </View>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Slots Card */}
+        {slots.length > 0 && (
+          <View className="mx-4 mt-4 bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+            <Text className="text-slate-900 font-bold text-lg mb-4">Available slots</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {slots.map((slot, index) => (
+                <View key={index} className="bg-teal-50 rounded-full px-4 py-2">
+                  <Text className="text-teal-700 font-semibold text-sm">{slot.start} – {slot.end}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
 

@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import NearbyTurfs from "../../components/NearbyTurfs";
 import Logo from "../../assets/images/logo.jpg";
+import NearbyTurfs from "../../components/NearbyTurfs";
 import { db } from "../../config/firebaseConfig";
 import { useAuthStore } from "../../store/authStore";
 

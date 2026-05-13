@@ -4,13 +4,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    FlatList,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DatePickerComponent from '../../components/layout/turf/DatePickerComponent';
@@ -175,8 +175,8 @@ export default function Turf(){
         }
       });
 
-      // Listen for slots in real-time
-      const slotsQuery = query(collection(db, "slots"), where("ref_id", "==", doc.ref));
+      // Listen for slots in real-time using turfId for consistency
+      const slotsQuery = query(collection(db, "slots"), where("turfId", "==", doc.id));
       if (slotsUnsubscribe) slotsUnsubscribe();
       slotsUnsubscribe = onSnapshot(slotsQuery, (slotsSnapshot) => {
         if (slotsSnapshot.empty) {

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Formik } from "formik";
 import { useState } from "react";
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -88,14 +88,15 @@ export default function CreateTurf() {
       const turfRef = await addDoc(collection(db, "turfs"), newTurf);
       
       // Save slots in a separate collection, linked to the turf
-      const slotsData = {
-        ref_id: turfRef,
-        turfId: turfRef.id,
-        turfName: values.name,
-        slot: slots,
-        createdAt: serverTimestamp(),
-      };
-      await addDoc(collection(db, "slots"), slotsData);
+      if (slots.length > 0) {
+        const slotsData = {
+          turfId: turfRef.id,
+          turfName: values.name,
+          slot: slots,
+          createdAt: serverTimestamp(),
+        };
+        await addDoc(collection(db, "slots"), slotsData);
+      }
 
       Alert.alert("Success!", "Your turf has been published successfully.", [
         { text: "View", onPress: () => router.push("/owner/dashboard") },
@@ -111,7 +112,14 @@ export default function CreateTurf() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+  showsVerticalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"
+  contentContainerStyle={{
+    paddingBottom: 200,
+    flexGrow: 1,
+  }}
+>
           <View className="px-5 pt-5 pb-4 bg-white border-b border-slate-200 flex-row items-center">
             <TouchableOpacity onPress={() => router.back()} hitSlop={12} className="mr-3">
               <Ionicons name="chevron-back" size={28} color="#0f172a" />

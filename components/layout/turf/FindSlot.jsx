@@ -13,7 +13,7 @@ import { guestFormSchema } from "../../../utils/guestFormSchema";
 const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID;
 
 function slotTimesFromProp(slots) {
-  if (!slots) return [];
+  if (!slots || (typeof slots === 'object' && !Array.isArray(slots))) return [];
   if (Array.isArray(slots)) {
     const doc = slots[0];
     return doc && Array.isArray(doc.slot) ? doc.slot : [];
@@ -46,14 +46,16 @@ export default function FindSlot({
     const checkBookedSlots = async () => {
       try {
         const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        // Query only by turf (no composite index needed), then filter by date in JS
         const q = query(
           collection(db, "bookings"),
-          where("turf", "==", turf),
-          where("date", ">=", new Date(dateStr).toISOString()),
-          where("date", "<", new Date(new Date(dateStr).getTime() + 24 * 60 * 60 * 1000).toISOString())
+          where("turf", "==", turf)
         );
         const snapshot = await getDocs(q);
-        const booked = snapshot.docs.map(doc => doc.data().slot);
+        // Filter by date in JavaScript to avoid composite index requirement
+        const booked = snapshot.docs
+          .filter(doc => doc.data().date.split('T')[0] === dateStr)
+          .map(doc => `${doc.data().slot.start}-${doc.data().slot.end}`); // Convert to string for comparison
         setBookedSlots(booked);
       } catch (error) {
         console.log("Error checking booked slots:", error);
@@ -92,7 +94,7 @@ export default function FindSlot({
         turfTitle: name,
         email: payerEmail,
         phoneNumber: payerPhone,
-        slot: selectedSlot,
+        slot: `${selectedSlot.start}-${selectedSlot.end}`, // Save as string for consistency
         date: date.toISOString(),
         selectedNumber,
         location,
@@ -173,13 +175,14 @@ export default function FindSlot({
               No time slots loaded yet. Check Firebase `slots` for this venue.
             </Text>
           ) : (
-            slotTimes.map((time, index) => {
-              const isBooked = bookedSlots.includes(time);
-              const isSelected = selectedSlot === time;
+            slotTimes.map((slotObj, index) => {
+              const slotString = `${slotObj.start}-${slotObj.end}`;
+              const isBooked = bookedSlots.includes(slotString);
+              const isSelected = selectedSlot && selectedSlot.start === slotObj.start && selectedSlot.end === slotObj.end;
               return (
                 <TouchableOpacity
-                  key={`${time}-${index}`}
-                  onPress={() => !isBooked && setSelectedSlot(time)}
+                  key={`${slotString}-${index}`}
+                  onPress={() => !isBooked && setSelectedSlot(slotObj)}
                   disabled={isBooked}
                   className={`px-5 py-3.5 m-2 rounded-2xl ${
                     isBooked 
@@ -192,7 +195,7 @@ export default function FindSlot({
                   <Text className={`text-base font-semibold ${
                     isBooked ? "text-white line-through" : "text-white"
                   }`}>
-                    {time}
+                    {slotObj.start} - {slotObj.end}
                   </Text>
                 </TouchableOpacity>
               );

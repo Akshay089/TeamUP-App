@@ -151,9 +151,9 @@ export default function OwnerDashboard() {
           onPress={() => router.push("/owner/create-turf")}
           className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-3xl px-4 py-4 flex-row items-center justify-between shadow-sm"
         >
-          <View>
+          <View className="rounded-3xl bg-white border border-slate-100 shadow-sm p-6">
             <Text className="text-black text-base font-semibold">Add new turf</Text>
-            <Text className="text-blue-500 text-sm mt-1">Create your turf listing</Text>
+            <Text className="text-black text-sm mt-1">Create your turf listing</Text>
           </View>
           <Ionicons name="add-circle-outline" size={28} color="white" />
         </TouchableOpacity>
